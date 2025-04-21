@@ -22,11 +22,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> getAll(String keyword, String sort, int page, int size) {
-        Pageable pageable = buildPageable(sort, page, size);
-        if (keyword != null && !keyword.isBlank()) {
-            return searchUsersByKeyword(keyword, pageable);
+        Pageable pageable;
+
+        // Mặc định sắp xếp theo fullname ASC
+        if (sort != null && !sort.isEmpty()) {
+            pageable = PageRequest.of(page, size, Sort.by(sort).ascending());
+        } else {
+            pageable = PageRequest.of(page, size, Sort.by("fullName").ascending());
         }
-        return userRepository.findAll(pageable);
+
+        if (keyword == null || keyword.isBlank()) {
+            return userRepository.findAll(pageable);
+        }
+
+        return userRepository.searchByKeyword(keyword, pageable);
     }
 
     private Pageable buildPageable(String sort, int page, int size) {
